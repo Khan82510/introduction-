@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Introduction & Profile Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome for clean icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Toast Notification Container (Replaces alert) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-graduation-cap text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-display font-bold text-lg sm:text-xl text-slate-900 leading-tight">EduIntro</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">Student Introduction & Bio-Data Card</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="loadSampleData()" class="px-3 py-2 text-xs sm:text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition flex items-center gap-2" title="Reset to sample student data">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden md:inline">Sample Data</span>
+                </button>
+                <button onclick="copyIntroductionText()" class="px-3.5 py-2 text-xs sm:text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition flex items-center gap-2">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>Copy Intro</span>
+                </button>
+                <button onclick="window.print()" class="px-3.5 py-2 text-xs sm:text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Print Card</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Column: Live Student Introduction Card Preview (7 cols on lg) -->
+            <section class="lg:col-span-7 space-y-6">
+                
+                <!-- Main Student Identity & Introduction Card -->
+                <div id="printable-card" class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 overflow-hidden transition-all">
+                    
+                    <!-- Decorative Top Banner -->
+                    <div class="h-32 sm:h-36 bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 relative p-6 flex justify-between items-start">
+                        <div class="bg-white/20 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-white/30 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                            <span id="preview-badge">Official Student Profile</span>
+                        </div>
+                        <div class="text-right text-white/90 text-xs font-medium">
+                            <p class="opacity-80">Academic Session</p>
+                            <p id="preview-session" class="font-bold text-sm">2026 - 2027</p>
+                        </div>
+                    </div>
+
+                    <!-- Profile Header & Avatar -->
+                    <div class="px-6 sm:px-8 pb-8 relative">
+                        <div class="flex flex-col sm:flex-row sm:items-end justify-between -mt-14 sm:-mt-16 mb-6 gap-4">
+                            <div class="relative inline-block">
+                                <img id="preview-avatar" 
+                                     src="https://placehold.co/160x160/4f46e5/ffffff?text=AH" 
+                                     onerror="this.src='https://placehold.co/160x160/4f46e5/ffffff?text=Student'"
+                                     alt="Student Photo" 
+                                     class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white shadow-lg bg-indigo-50">
+                                <div class="absolute -bottom-2 -right-2 bg-emerald-500 text-white w-8 h-8 rounded-xl flex items-center justify-center border-2 border-white shadow-sm" title="Verified Student">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-card text-indigo-500"></i>
+                                    Roll No: <span id="preview-roll" class="text-slate-900">STD-2026-042</span>
+                                </span>
+                                <span class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-semibold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-book-open text-indigo-500"></i>
+                                    <span id="preview-grade">BS Computer Science (Semester 4)</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Student Name & Headline -->
+                        <div class="mb-6">
+                            <h2 id="preview-name" class="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+                                Ahmed Hassan
+                            </h2>
+                            <p id="preview-institution" class="text-sm sm:text-base font-medium text-indigo-600 mt-1 flex items-center gap-2">
+                                <i class="fa-solid fa-building-columns"></i>
+                                <span>National University of Modern Sciences</span>
+                            </p>
+                        </div>
+
+                        <!-- Self-Introduction Bio Paragraph -->
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 mb-6">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-quote-left text-indigo-400"></i> About Me / Self Introduction
+                            </h3>
+                            <p id="preview-bio" class="text-slate-700 text-sm sm:text-base leading-relaxed">
+                                Assalam-o-Alaikum! My name is Ahmed Hassan, son of Muhammad Tariq. I am a dedicated Computer Science student passionate about web development, artificial intelligence, and problem-solving. I enjoy collaborating on academic projects and contributing positively to my community.
+                            </p>
+                        </div>
+
+                        <!-- Core Personal Details Grid (Name, Father's Name, DOB, Address, etc.) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            
+                            <!-- Father's Name -->
+                            <div class="p-4 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 transition flex items-start gap-3.5 shadow-sm shadow-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-user-tie"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-slate-400">Father's Name</p>
+                                    <p id="preview-father" class="text-sm font-semibold text-slate-800 truncate mt-0.5">Muhammad Tariq</p>
+                                </div>
+                            </div>
+
+                            <!-- Date of Birth & Blood Group -->
+                            <div class="p-4 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 transition flex items-start gap-3.5 shadow-sm shadow-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-cake-candles"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-slate-400">Date of Birth & Gender</p>
+                                    <p id="preview-dob" class="text-sm font-semibold text-slate-800 truncate mt-0.5">14 August 2005 • Male</p>
+                                </div>
+                            </div>
+
+                            <!-- Contact Phone -->
+                            <div class="p-4 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 transition flex items-start gap-3.5 shadow-sm shadow-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-slate-400">Phone / Guardian Contact</p>
+                                    <p id="preview-phone" class="text-sm font-semibold text-slate-800 truncate mt-0.5">+92 300 1234567</p>
+                                </div>
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="p-4 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 transition flex items-start gap-3.5 shadow-sm shadow-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-slate-400">Email Address</p>
+                                    <p id="preview-email" class="text-sm font-semibold text-slate-800 truncate mt-0.5">ahmed.hassan@student.edu.pk</p>
+                                </div>
+                            </div>
+
+                            <!-- Full Residential Address (Spans 2 columns) -->
+                            <div class="sm:col-span-2 p-4 rounded-2xl border border-slate-100 bg-white hover:border-indigo-100 transition flex items-start gap-3.5 shadow-sm shadow-slate-100">
+                                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-medium text-slate-400">Permanent / Residential Address</p>
+                                    <p id="preview-address" class="text-sm font-semibold text-slate-800 mt-0.5 leading-snug">
+                                        House # 24, Street 7, Sector G-10/3, Islamabad, Pakistan
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hobbies & Interests Footer -->
+                        <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-2 flex-wrap" id="preview-hobbies-container">
+                                <span class="text-xs font-semibold text-slate-400 mr-1">Interests:</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">Coding</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">Reading</span>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium">Cricket</span>
+                            </div>
+                            <div class="text-xs text-slate-400 font-medium">
+                                Blood Group: <span id="preview-blood" class="text-rose-600 font-bold">B+</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Auto-Generated Spoken Introduction Helper Box -->
+                <div class="bg-indigo-900 text-white rounded-3xl p-6 shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-700 flex items-center justify-center text-indigo-200">
+                                <i class="fa-solid fa-microphone-lines"></i>
+                            </div>
+                            <h3 class="font-display font-bold text-base">Quick Spoken Introduction Script</h3>
+                        </div>
+                        <button onclick="copySpokenScript()" class="text-xs bg-indigo-700 hover:bg-indigo-600 px-3 py-1.5 rounded-xl font-medium transition flex items-center gap-1.5">
+                            <i class="fa-regular fa-copy"></i> Copy Speech
+                        </button>
+                    </div>
+                    <p id="spoken-script" class="text-indigo-100 text-sm leading-relaxed italic">
+                        "Hello everyone! My name is Ahmed Hassan, and my father's name is Muhammad Tariq. I am currently studying in BS Computer Science (Semester 4) at National University of Modern Sciences, with Roll Number STD-2026-042. I live at House # 24, Street 7, Sector G-10/3, Islamabad, Pakistan. My hobbies include Coding, Reading, and Cricket. Thank you!"
+                    </p>
+                </div>
+
+            </section>
+
+            <!-- Right Column: Interactive Student Details Editor Form (5 cols on lg) -->
+            <section class="lg:col-span-5 bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 sm:p-8">
+                <div class="flex items-center justify-between pb-5 mb-6 border-b border-slate-100">
+                    <div>
+                        <h2 class="font-display font-bold text-xl text-slate-900">Edit Student Details</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Type below to update your introduction card live</p>
+                    </div>
+                    <button onclick="clearForm()" class="text-xs font-medium text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition">
+                        Clear All
+                    </button>
+                </div>
+
+                <form id="student-form" class="space-y-4" onsubmit="event.preventDefault(); saveToLocalStorage();">
+                    
+                    <!-- Student Full Name -->
+                    <div>
+                        <label for="input-name" class="block text-xs font-semibold text-slate-700 mb-1.5">Student Full Name *</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </span>
+                            <input type="text" id="input-name" value="Ahmed Hassan" placeholder="Enter student's full name"
+                                   class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Father's Name -->
+                    <div>
+                        <label for="input-father" class="block text-xs font-semibold text-slate-700 mb-1.5">Father's Name *</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i class="fa-solid fa-user-tie text-xs"></i>
+                            </span>
+                            <input type="text" id="input-father" value="Muhammad Tariq" placeholder="Enter father's full name"
+                                   class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Class/Grade & Roll Number -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="input-grade" class="block text-xs font-semibold text-slate-700 mb-1.5">Class / Degree</label>
+                            <input type="text" id="input-grade" value="BS Computer Science (Semester 4)" placeholder="e.g. Grade 10-A"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="input-roll" class="block text-xs font-semibold text-slate-700 mb-1.5">Roll / ID Number</label>
+                            <input type="text" id="input-roll" value="STD-2026-042" placeholder="e.g. 1042"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- School / College / University Name -->
+                    <div>
+                        <label for="input-institution" class="block text-xs font-semibold text-slate-700 mb-1.5">School / College / University</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i class="fa-solid fa-building-columns text-xs"></i>
+                            </span>
+                            <input type="text" id="input-institution" value="National University of Modern Sciences" placeholder="Enter institution name"
+                                   class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Date of Birth, Gender & Blood Group -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label for="input-dob" class="block text-xs font-semibold text-slate-700 mb-1.5">Date of Birth</label>
+                            <input type="text" id="input-dob" value="14 August 2005" placeholder="DD Month YYYY"
+                                   class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="input-gender" class="block text-xs font-semibold text-slate-700 mb-1.5">Gender</label>
+                            <select id="input-gender" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                                <option value="Male" selected>Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="input-blood" class="block text-xs font-semibold text-slate-700 mb-1.5">Blood Group</label>
+                            <select id="input-blood" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+" selected>B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Phone & Email -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="input-phone" class="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number</label>
+                            <input type="tel" id="input-phone" value="+92 300 1234567" placeholder="+92 300 0000000"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="input-email" class="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+                            <input type="email" id="input-email" value="ahmed.hassan@student.edu.pk" placeholder="student@email.com"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Home Address -->
+                    <div>
+                        <label for="input-address" class="block text-xs font-semibold text-slate-700 mb-1.5">Full Residential Address *</label>
+                        <textarea id="input-address" rows="2" placeholder="House #, Street, Sector/Area, City, Country"
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">House # 24, Street 7, Sector G-10/3, Islamabad, Pakistan</textarea>
+                    </div>
+
+                    <!-- Hobbies / Interests -->
+                    <div>
+                        <label for="input-hobbies" class="block text-xs font-semibold text-slate-700 mb-1.5">Hobbies & Interests (comma separated)</label>
+                        <input type="text" id="input-hobbies" value="Coding, Reading, Cricket" placeholder="e.g. Reading, Painting, Football"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">
+                    </div>
+
+                    <!-- Personal Introduction Bio -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="input-bio" class="block text-xs font-semibold text-slate-700">Self-Introduction Paragraph</label>
+                            <button type="button" onclick="autoGenerateBio()" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Write Bio
+                            </button>
+                        </div>
+                        <textarea id="input-bio" rows="3" placeholder="Write a short introduction about yourself..."
+                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition">Assalam-o-Alaikum! My name is Ahmed Hassan, son of Muhammad Tariq. I am a dedicated Computer Science student passionate about web development, artificial intelligence, and problem-solving. I enjoy collaborating on academic projects and contributing positively to my community.</textarea>
+                    </div>
+
+                    <!-- Save Button -->
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-indigo-200 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Save Student Profile</span>
+                        </button>
+                    </div>
+
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>© 2026 EduIntro Student Portal. Designed for clear academic introductions.</p>
+            <p>All details are saved locally in your browser for privacy.</p>
+        </div>
+    </footer>
+
+    <!-- Print-specific styling via Tailwind CDN / inline media print utility -->
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-card, #printable-card * {
+                visibility: visible;
+            }
+            #printable-card {
+                position: fixed;
+                left: 0;
+                top: 0;
+                width: 100%;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+        }
+    </style>
+
+    <!-- Application Logic -->
+    <script>
+        // Default sample student profile
+        const sampleStudent = {
+            name: "Ahmed Hassan",
+            father: "Muhammad Tariq",
+            grade: "BS Computer Science (Semester 4)",
+            roll: "STD-2026-042",
+            institution: "National University of Modern Sciences",
+            dob: "14 August 2005",
+            gender: "Male",
+            blood: "B+",
+            phone: "+92 300 1234567",
+            email: "ahmed.hassan@student.edu.pk",
+            address: "House # 24, Street 7, Sector G-10/3, Islamabad, Pakistan",
+            hobbies: "Coding, Reading, Cricket",
+            bio: "Assalam-o-Alaikum! My name is Ahmed Hassan, son of Muhammad Tariq. I am a dedicated Computer Science student passionate about web development, artificial intelligence, and problem-solving. I enjoy collaborating on academic projects and contributing positively to my community."
+        };
+
+        // DOM Elements mapping
+        const inputs = {
+            name: document.getElementById('input-name'),
+            father: document.getElementById('input-father'),
+            grade: document.getElementById('input-grade'),
+            roll: document.getElementById('input-roll'),
+            institution: document.getElementById('input-institution'),
+            dob: document.getElementById('input-dob'),
+            gender: document.getElementById('input-gender'),
+            blood: document.getElementById('input-blood'),
+            phone: document.getElementById('input-phone'),
+            email: document.getElementById('input-email'),
+            address: document.getElementById('input-address'),
+            hobbies: document.getElementById('input-hobbies'),
+            bio: document.getElementById('input-bio')
+        };
+
+        /**
+         * Custom Toast Notification (Never uses alert())
+         */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-slate-900 text-white' : 'bg-indigo-600 text-white';
+            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-info text-indigo-200';
+            
+            toast.className = `${bgColor} px-4 py-3 rounded-2xl shadow-lg flex items-center gap-3 text-sm font-medium transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        /**
+         * Extracts initials from full name for avatar placeholder
+         */
+        function getInitials(name) {
+            if (!name || !name.trim()) return "ST";
+            const parts = name.trim().split(/\s+/);
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        /**
+         * Updates the live preview card & spoken script whenever inputs change
+         */
+        function updatePreview() {
+            const nameVal = inputs.name.value.trim() || "Student Name";
+            const fatherVal = inputs.father.value.trim() || "Father's Name";
+            const gradeVal = inputs.grade.value.trim() || "Class / Course";
+            const rollVal = inputs.roll.value.trim() || "N/A";
+            const instVal = inputs.institution.value.trim() || "Institution Name";
+            const dobVal = inputs.dob.value.trim() || "Not Specified";
+            const genderVal = inputs.gender.value;
+            const bloodVal = inputs.blood.value;
+            const phoneVal = inputs.phone.value.trim() || "Not Provided";
+            const emailVal = inputs.email.value.trim() || "Not Provided";
+            const addressVal = inputs.address.value.trim() || "Address not provided";
+            const hobbiesVal = inputs.hobbies.value.trim();
+            const bioVal = inputs.bio.value.trim() || "No introduction bio entered yet.";
+
+            // Update card text elements
+            document.getElementById('preview-name').textContent = nameVal;
+            document.getElementById('preview-father').textContent = fatherVal;
+            document.getElementById('preview-grade').textContent = gradeVal;
+            document.getElementById('preview-roll').textContent = rollVal;
+            document.getElementById('preview-institution').querySelector('span').textContent = instVal;
+            document.getElementById('preview-dob').textContent = `${dobVal} • ${genderVal}`;
+            document.getElementById('preview-blood').textContent = bloodVal;
+            document.getElementById('preview-phone').textContent = phoneVal;
+            document.getElementById('preview-email').textContent = emailVal;
+            document.getElementById('preview-address').textContent = addressVal;
+            document.getElementById('preview-bio').textContent = bioVal;
+
+            // Update Avatar initials dynamically
+            const initials = getInitials(nameVal);
+            document.getElementById('preview-avatar').src = `https://placehold.co/160x160/4f46e5/ffffff?text=${encodeURIComponent(initials)}`;
+
+            // Update Hobbies tags
+            const hobbiesContainer = document.getElementById('preview-hobbies-container');
+            hobbiesContainer.innerHTML = `<span class="text-xs font-semibold text-slate-400 mr-1">Interests:</span>`;
+            if (hobbiesVal) {
+                const hobbyList = hobbiesVal.split(',').map(h => h.trim()).filter(Boolean);
+                hobbyList.forEach(hobby => {
+                    const span = document.createElement('span');
+                    span.className = "px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium";
+                    span.textContent = hobby;
+                    hobbiesContainer.appendChild(span);
+                });
+            } else {
+                const span = document.createElement('span');
+                span.className = "text-xs text-slate-400 italic";
+                span.textContent = "None listed";
+                hobbiesContainer.appendChild(span);
+            }
+
+            // Update Spoken Introduction Script
+            const relationText = genderVal === 'Female' ? 'daughter of' : (genderVal === 'Male' ? 'son of' : 'child of');
+            const hobbiesSpeech = hobbiesVal ? ` My hobbies include ${hobbiesVal}.` : '';
+            document.getElementById('spoken-script').textContent = 
+                `"Hello everyone! My name is ${nameVal}, ${relationText} ${fatherVal}. I am currently studying in ${gradeVal} at ${instVal}, with Roll Number ${rollVal}. I live at ${addressVal}.${hobbiesSpeech} Thank you!"`;
+        }
+
+        /**
+         * Automatically generates a clean self-introduction paragraph from form fields
+         */
+        function autoGenerateBio() {
+            const nameVal = inputs.name.value.trim() || "a student";
+            const fatherVal = inputs.father.value.trim() || "my father";
+            const gradeVal = inputs.grade.value.trim() || "my current class";
+            const instVal = inputs.institution.value.trim() || "my institution";
+            const addressVal = inputs.address.value.trim() || "my city";
+            const genderVal = inputs.gender.value;
+            const hobbiesVal = inputs.hobbies.value.trim();
+
+            const relation = genderVal === 'Female' ? 'daughter of' : (genderVal === 'Male' ? 'son of' : 'child of');
+            const hobbySentence = hobbiesVal ? ` In my free time, I enjoy ${hobbiesVal.toLowerCase()}.` : '';
+
+            inputs.bio.value = `Hello! My name is ${nameVal}, ${relation} ${fatherVal}. I am a student of ${gradeVal} at ${instVal}, currently residing at ${addressVal}. I am eager to learn new skills, work hard in my studies, and achieve academic excellence.${hobbySentence}`;
+            
+            updatePreview();
+            showToast("Generated a fresh introduction bio!");
+        }
+
+        /**
+         * Copies formatted student bio-data to clipboard using execCommand fallback
+         */
+        function copyToClipboardFallback(text, successMsg) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg);
+            } catch (err) {
+                showToast("Unable to copy text", "info");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyIntroductionText() {
+            const formattedText = `STUDENT INTRODUCTION CARD
+-------------------------
+Name: ${inputs.name.value}
+Father's Name: ${inputs.father.value}
+Class/Course: ${inputs.grade.value}
+Roll Number: ${inputs.roll.value}
+Institution: ${inputs.institution.value}
+Date of Birth: ${inputs.dob.value} (${inputs.gender.value})
+Blood Group: ${inputs.blood.value}
+Phone: ${inputs.phone.value}
+Email: ${inputs.email.value}
+Address: ${inputs.address.value}
+Hobbies: ${inputs.hobbies.value}
+
+About Me:
+${inputs.bio.value}`;
+
+            copyToClipboardFallback(formattedText, "Full student details copied to clipboard!");
+        }
+
+        function copySpokenScript() {
+            const scriptText = document.getElementById('spoken-script').textContent;
+            copyToClipboardFallback(scriptText, "Spoken introduction script copied!");
+        }
+
+        /**
+         * LocalStorage persistence
+         */
+        function saveToLocalStorage() {
+            const data = {};
+            for (const key in inputs) {
+                data[key] = inputs[key].value;
+            }
+            try {
+                localStorage.setItem('eduIntroStudentData', JSON.stringify(data));
+                showToast("Student profile saved successfully!");
+            } catch (e) {
+                showToast("Profile updated on screen!");
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('eduIntroStudentData');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    for (const key in inputs) {
+                        if (data[key] !== undefined) {
+                            inputs[key].value = data[key];
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not read local storage");
+            }
+            updatePreview();
+        }
+
+        function loadSampleData() {
+            for (const key in sampleStudent) {
+                if (inputs[key]) {
+                    inputs[key].value = sampleStudent[key];
+                }
+            }
+            updatePreview();
+            showToast("Sample student profile loaded!");
+        }
+
+        function clearForm() {
+            for (const key in inputs) {
+                if (key === 'gender') inputs[key].value = 'Male';
+                else if (key === 'blood') inputs[key].value = 'O+';
+                else inputs[key].value = '';
+            }
+            updatePreview();
+            showToast("Form cleared. Ready for new student details!");
+        }
+
+        // Attach real-time listeners to all inputs
+        Object.values(inputs).forEach(inputEl => {
+            inputEl.addEventListener('input', updatePreview);
+            inputEl.addEventListener('change', updatePreview);
+        });
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', loadFromLocalStorage);
+    </script>
+</body>
+</html>
